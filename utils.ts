@@ -22,6 +22,6 @@ export const getHash = (): string | undefined => {
   return Deno.env.get("HASH");
 };
 
-export const clearHash = (): void => {
-  return Deno.env.set("HASH", "");
-};
+export const setHash = (hash: string): void => {
+  return Deno.env.set("HASH", hash);
+}

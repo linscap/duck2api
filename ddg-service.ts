@@ -1,6 +1,6 @@
 import { generateVqdHash } from './vm.ts';
 import { userAgent } from "./utils.ts";
-import { CONFIG, getHash, clearHash } from "./utils.ts";
+import { CONFIG, getHash, setHash } from "./utils.ts";
 import { ChatMessage } from "./types.ts";
 import { errorResponse } from "./response.ts";
 
@@ -11,7 +11,6 @@ export class DDGService {
     // 优先使用环境变量中的hash
     const envHash = getHash();
     if (envHash) {
-      this.hash = envHash;
       return envHash;
     }
 
@@ -45,8 +44,7 @@ export class DDGService {
       if (!decryptedHash || decryptedHash.trim() === '') {
         return errorResponse(`hash解密结果为空`, 502);
       }
-
-      this.hash = decryptedHash;
+      setHash(decryptedHash)
       return decryptedHash;
       
     } catch (error) {
@@ -95,7 +93,7 @@ export class DDGService {
     
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       if (attempt > 0) {
-        clearHash(); // 重置hash，强制重新获取
+        setHash(""); // 重置hash，强制重新获取
       }
       
       const result = await this.sendMessage(model, messages);
