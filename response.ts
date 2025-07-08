@@ -119,5 +119,5 @@ export function unauthorizedResponse(message: string, status = 401): Response {
 }
 
 export function errorResponse(message: string, status = 500): Response {
-  return jsonResponse({ error: message }, status);
+  return ResponseBuilder.jsonResponse({ error: message }, status);
 }
