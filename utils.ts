@@ -1,7 +1,11 @@
+const getBaseUrl = (): string => {
+    return Deno.env.get("BASE_URL") || "https://duckduckgo.com";
+};
+
 export const CONFIG = {
   PORT: 8000,
-  DDG_STATUS_URL: "https://duckduckgo.com/duckchat/v1/status",
-  DDG_CHAT_URL: "https://duckduckgo.com/duckchat/v1/chat",
+  DDG_STATUS_URL: `${getBaseUrl()}/duckchat/v1/status`,
+  DDG_CHAT_URL: `${getBaseUrl()}/duckchat/v1/chat`,
   MODELS: [
     "gpt-4o-mini",
     "meta-llama/Llama-4-Scout-17B-16E-Instruct",
@@ -24,4 +28,4 @@ export const getHash = (): string | undefined => {
 
 export const setHash = (hash: string): void => {
   return Deno.env.set("HASH", hash);
-}
+};
