@@ -1,4 +1,4 @@
-import { JSDOM, DOMWindow } from 'jsdom';
+import { JSDOM } from 'npm:jsdom';
 import { userAgent } from './utils.ts';
 import crypto from 'node:crypto';
 
@@ -23,11 +23,6 @@ interface JSExecutionResult {
   meta?: Record<string, unknown>;
 }
 
-declare global {
-  var window: DOMWindow | undefined;
-  var document: Document | undefined;
-  var navigator: Navigator | undefined;
-}
 
 const mockMeta: MockMeta = {
   origin: "https://duckduckgo.com", 
@@ -57,9 +52,9 @@ class VqdHashGenerator {
       const { window } = dom;
       
       // 设置全局变量
-      global.window = window;
-      global.document = window.document;
-      global.navigator = window.navigator;
+      globalThis.window = window;
+      globalThis.document = window.document;
+      globalThis.navigator = window.navigator;
       
       // 设置 userAgent
       Object.defineProperty(window.navigator, 'userAgent', {
@@ -88,9 +83,9 @@ class VqdHashGenerator {
       if (dom) {
         dom.window.close();
       }
-      delete global.window;
-      delete global.document;
-      delete global.navigator;
+      delete globalThis.window;
+      delete globalThis.document;
+      delete globalThis.navigator;
     }
     
     return results;
