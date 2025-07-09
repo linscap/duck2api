@@ -44,11 +44,14 @@ export async function handleChatCompletions(req: Request): Promise<Response> {
     return ddgResponse;
   }
 
-  // 处理响应
-  if (stream) {
-    return ResponseBuilder.buildStreamResponse(ddgResponse.body!);
-  } else {
-    // return ResponseBuilder.buildNonStreamResponse(ddgResponse.body!);
-    return errorResponse("暂未实现流式响应", 501);
-  }
+  return ResponseBuilder.buildResponse(ddgResponse.body!,stream,model);
 }
+
+export const handleMeow = async (request: Request): Promise<Response> => {
+    return new Response("Meow~", {
+      status: 200,
+      headers: {
+        "Content-Type": "text/plain",
+      },
+    });
+};

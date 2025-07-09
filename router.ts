@@ -1,6 +1,7 @@
 // router.ts
-import { handleModels, handleChatCompletions } from "./handlers.ts";
+import { handleMeow, handleModels, handleChatCompletions } from "./handlers.ts";
 import { errorResponse } from "./response.ts";
+
 
 export async function router(req: Request): Promise<Response> {
   const { method } = req;
@@ -10,6 +11,7 @@ export async function router(req: Request): Promise<Response> {
   const routes = [
     { method: "GET", path: "/v1/models", handler: handleModels },
     { method: "POST", path: "/v1/chat/completions", handler: handleChatCompletions },
+    { method: "GET", path: "/", handler: handleMeow },
   ];
   
   const route = routes.find(r => r.method === method && r.path === pathname);
