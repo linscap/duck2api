@@ -9,10 +9,10 @@ export class DDGService {
 
   async getVqdHash(): Promise<string | Response> {
     // 优先使用环境变量中的hash
-    // const envHash = getHash();
-    // if (envHash) {
-    //   return envHash;
-    // }
+    const envHash = getHash();
+    if (envHash) {
+      return envHash;
+    }
 
     try {
       const response = await fetch(CONFIG.DDG_STATUS_URL, {
@@ -43,7 +43,7 @@ export class DDGService {
       if (!decryptedHash || decryptedHash.trim() === "") {
         return errorResponse(`hash解密结果为空`, 502);
       }
-      // setHash(decryptedHash);
+      setHash(decryptedHash);
       return decryptedHash;
     } catch (error) {
       return errorResponse(`获取hash失败: ${error.message}`, 502);
@@ -116,9 +116,9 @@ export class DDGService {
     } | null = null;
 
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
-      // if (attempt > 0) {
-      //   setHash(""); // 重置hash，强制重新获取
-      // }
+      if (attempt > 0) {
+        setHash(""); // 重置hash，强制重新获取
+      }
 
       const result = await this.sendMessage(model, messages);
 
@@ -129,7 +129,7 @@ export class DDGService {
       lastResult = result;
 
       // 只有418错误才重试
-      if (result.status === 418) {
+      if (result.status === 418 || 429) {
         continue;
       } else {
         // 其他错误直接返回，不重试
