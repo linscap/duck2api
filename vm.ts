@@ -1,6 +1,6 @@
-import { JSDOM } from 'npm:jsdom';
-import { userAgent } from './utils.ts';
-import crypto from 'node:crypto';
+import { JSDOM } from "npm:jsdom";
+import { userAgent } from "./utils.ts";
+import crypto from "node:crypto";
 
 // 更详细的类型定义
 interface MockMeta {
@@ -23,11 +23,10 @@ interface JSExecutionResult {
   meta?: Record<string, unknown>;
 }
 
-
 const mockMeta: MockMeta = {
-  origin: "https://duckduckgo.com", 
+  origin: "https://duckduckgo.com",
   stack: "",
-  duration: Math.floor(Math.random() * 100) + 1
+  duration: Math.floor(Math.random() * 100) + 1,
 } as const;
 
 class VqdHashGenerator {
@@ -36,48 +35,77 @@ class VqdHashGenerator {
       server_hashes: [],
       client_hashes: [],
       signals: {},
-      meta: {}
+      meta: {},
     };
 
     let dom: JSDOM | null = null;
 
     try {
-      dom = new JSDOM(`<!DOCTYPE html><html><head></head><body></body></html>`, {
-        url: "https://duckduckgo.com",
-        referrer: "https://duckduckgo.com",
-        pretendToBeVisual: true,
-        resources: "usable"
-      });
+      dom = new JSDOM(
+        `<!DOCTYPE html><html><head></head><body></body></html>`,
+        {
+          url: "https://duckduckgo.com",
+          referrer: "https://duckduckgo.com",
+          pretendToBeVisual: true,
+          resources: "usable",
+        }
+      );
 
       const { window } = dom;
-      
+
       // 设置全局变量
       globalThis.window = window;
       globalThis.document = window.document;
-      globalThis.navigator = window.navigator;
-      
-      // 设置 userAgent
-      Object.defineProperty(window.navigator, 'userAgent', {
-        value: userAgent,
-        configurable: true
+      // 创建自定义 navigator 对象
+      const customNavigator = {
+        userAgent: userAgent,
+        platform: "Win32",
+        language: "en-US",
+        languages: ["en-US", "en"],
+        cookieEnabled: true,
+        onLine: true,
+        hardwareConcurrency: 4,
+        maxTouchPoints: 0,
+        vendor: "Google Inc.",
+        vendorSub: "",
+        productSub: "20030107",
+        appName: "Netscape",
+        appVersion: userAgent,
+        product: "Gecko",
+      };
+      // 重新定义 window.navigator
+      Object.defineProperty(window, "navigator", {
+        value: customNavigator,
+        writable: true,
+        configurable: true,
+        enumerable: true,
       });
-      
+      // 设置 globalThis.navigator
+      Object.defineProperty(globalThis, "navigator", {
+        value: customNavigator,
+        writable: true,
+        configurable: true,
+        enumerable: true,
+      });
       // 删除 webdriver 属性
       delete (window.navigator as any).webdriver;
 
       // 执行 JavaScript 代码
       const result = window.eval(jsCode) as JSExecutionResult;
-      
-      if (result && typeof result === 'object') {
+
+      if (result && typeof result === "object") {
         results.server_hashes = result.server_hashes || [];
         results.client_hashes = result.client_hashes || [];
         results.signals = result.signals || {};
         results.meta = result.meta || {};
       }
-      
     } catch (error) {
-      console.error('JSDOM execution failed:', error);
-      throw new Error(`JSDOM执行失败: ${error instanceof Error ? error.message : String(error)}`);
+      console.error("JSDOM execution failed:", error);
+      throw new Error(
+        `JSDOM执行失败: ${
+          error instanceof Error ? error.message : String(error)
+        }`
+      );
     } finally {
       // 清理资源
       if (dom) {
@@ -87,45 +115,48 @@ class VqdHashGenerator {
       delete globalThis.document;
       delete globalThis.navigator;
     }
-    
+
     return results;
   }
 
   private static hashClientValues(mockClientHashes: string[]): string[] {
     return mockClientHashes.map((value: string): string => {
-      const hash = crypto.createHash('sha256');
-      hash.update(value, 'utf8');
-      return hash.digest('base64');
+      const hash = crypto.createHash("sha256");
+      hash.update(value, "utf8");
+      return hash.digest("base64");
     });
   }
 
   static generate(vqdHashRequest: string): string {
-    if (!vqdHashRequest || typeof vqdHashRequest !== 'string') {
-      throw new Error('VQD Hash 请求参数无效');
+    if (!vqdHashRequest || typeof vqdHashRequest !== "string") {
+      throw new Error("VQD Hash 请求参数无效");
     }
 
     try {
       // 解码 base64
       const jsCode = atob(vqdHashRequest);
-      
+
       // 提取和处理 hash
       const hash = this.extractIIFEJSDOM(jsCode);
-      
+
       // 处理客户端 hash
       hash.client_hashes = this.hashClientValues(hash.client_hashes);
-      
+
       // 合并 meta 数据
       hash.meta = {
         ...hash.meta,
-        ...mockMeta
+        ...mockMeta,
       };
-      
+
       // 返回编码后的结果
       return btoa(JSON.stringify(hash));
-      
     } catch (error) {
-      console.error('generateVqdHash 执行失败:', error);
-      throw new Error(`VQD Hash 生成失败: ${error instanceof Error ? error.message : String(error)}`);
+      console.error("generateVqdHash 执行失败:", error);
+      throw new Error(
+        `VQD Hash 生成失败: ${
+          error instanceof Error ? error.message : String(error)
+        }`
+      );
     }
   }
 }
